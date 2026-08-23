@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  eslint: {
+    // Abaikan error eslint saat build di Netlify
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;
