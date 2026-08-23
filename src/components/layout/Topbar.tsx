@@ -8,12 +8,25 @@ export default function Topbar() {
   const router = useRouter()
   const supabase = createClient()
   const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [userRole, setUserRole] = useState<string | null>(null)
+  const [userName, setUserName] = useState<string | null>(null)
 
   useEffect(() => {
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         setUserEmail(session.user.email ?? null)
+        // Fetch profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name, role')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (profile) {
+          setUserName(profile.full_name)
+          setUserRole(profile.role)
+        }
       } else {
         // Redirect to login if no session on dashboard
         router.push('/login')
@@ -41,13 +54,18 @@ export default function Topbar() {
       </div>
       
       <div className="flex items-center gap-4">
-        <div className="hidden sm:block text-sm text-gray-600">
-          Masuk sebagai: <span className="font-semibold text-primary">{userEmail || 'Memuat...'}</span>
+        <div className="hidden sm:block text-right">
+          <div className="text-sm font-semibold text-gray-800">
+            {userName || userEmail || 'Memuat...'}
+          </div>
+          <div className="text-xs text-primary font-bold uppercase tracking-wider">
+            {userRole ? `[ ${userRole.replace('_', ' ')} ]` : '...'}
+          </div>
         </div>
         
         <button 
           onClick={handleLogout}
-          className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-100 transition"
+          className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-100 transition ml-2"
         >
           Logout
         </button>

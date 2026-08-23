@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 
-export default function Header() {
+export default function Header({ hasSession = false }: { hasSession?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -33,11 +33,18 @@ export default function Header() {
             <Link href="/kontak" className="text-gray-700 hover:text-primary font-medium px-3 py-2">Kontak</Link>
           </nav>
 
-          {/* Login Button */}
+          {/* Login / Dashboard Button */}
           <div className="hidden md:flex items-center">
-            <Link href="/login" className="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-emerald-800 transition">
-              LOGIN
-            </Link>
+            {hasSession ? (
+              <Link href="/dashboard" className="bg-emerald-100 text-emerald-800 px-6 py-2 rounded-full font-semibold hover:bg-emerald-200 transition border border-emerald-200 shadow-sm flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                DASHBOARD
+              </Link>
+            ) : (
+              <Link href="/login" className="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-emerald-800 transition">
+                LOGIN
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -67,7 +74,12 @@ export default function Header() {
             <Link href="/kegiatan" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md">Kegiatan</Link>
             <Link href="/keuangan" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md">Keuangan</Link>
             <Link href="/kontak" className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-md">Kontak</Link>
-            <Link href="/login" className="block px-3 py-2 text-base font-medium text-primary bg-emerald-50 rounded-md mt-4">Login Admin</Link>
+            
+            {hasSession ? (
+              <Link href="/dashboard" className="block px-3 py-2 text-base font-bold text-emerald-800 bg-emerald-100 rounded-md mt-4 border border-emerald-200">Buka Dashboard</Link>
+            ) : (
+              <Link href="/login" className="block px-3 py-2 text-base font-medium text-primary bg-emerald-50 rounded-md mt-4">Login Admin</Link>
+            )}
           </div>
         </div>
       )}

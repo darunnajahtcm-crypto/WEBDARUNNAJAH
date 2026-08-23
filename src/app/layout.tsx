@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { createClient } from "@/utils/supabase/server";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,15 +16,18 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   return (
     <html lang="id">
       <body className={`${inter.variable} font-sans antialiased bg-surface min-h-screen flex flex-col`}>
-        <Header />
+        <Header hasSession={!!user} />
         <main className="flex-grow">
           {children}
         </main>
