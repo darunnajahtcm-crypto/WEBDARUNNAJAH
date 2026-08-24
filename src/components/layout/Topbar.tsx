@@ -56,7 +56,7 @@ export default function Topbar() {
       <div className="flex items-center gap-4">
         <div className="hidden sm:block text-right">
           <div className="text-sm font-semibold text-gray-800">
-            {userName || userEmail || 'Memuat...'}
+            {userName || userEmail?.replace('@musholla.com', '') || 'Memuat...'}
           </div>
           <div className="text-xs text-primary font-bold uppercase tracking-wider">
             {userRole ? `[ ${userRole.replace('_', ' ')} ]` : '...'}

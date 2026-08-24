@@ -31,13 +31,12 @@ export async function createAdminOrPetugas(formData: FormData) {
 
     if (authError) return { error: authError.message }
 
-    // 2. Update tabel profiles (karena trigger di Supabase mungkin sudah membuatkannya otomatis)
+    // 2. Update tabel profiles
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .update({ full_name, role })
       .eq('id', authData.user.id)
 
-    // Jika update gagal (misal trigger belum dipasang), coba insert
     if (profileError) {
       const { error: insertError } = await supabaseAdmin
         .from('profiles')
@@ -54,4 +53,66 @@ export async function createAdminOrPetugas(formData: FormData) {
   } catch (error: any) {
     return { error: error.message }
   }
+}
+
+export async function deleteUserAction(id: string) {
+  try {
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(id)
+    if (error) return { error: error.message }
+
+    // Profil otomatis terhapus jika ada ON DELETE CASCADE, tapi amankan saja:
+    await supabaseAdmin.from('profiles').delete().eq('id', id)
+    
+    revalidatePath('/dashboard/users')
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message }
+  }
+}
+
+export async function updateUserAction(formData: FormData) {
+  const id = formData.get('id') as string
+  const full_name = formData.get('full_name') as string
+  const role = formData.get('role') as string
+  const password = formData.get('password') as string
+
+  try {
+    // Update profile
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .update({ full_name, role })
+      .eq('id', id)
+    if (profileError) return { error: profileError.message }
+
+    // Update password if provided
+    if (password && password.trim() !== '') {
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(id, {
+        password: password
+      })
+      if (authError) return { error: authError.message }
+    }
+
+    revalidatePath('/dashboard/users')
+    return { success: true }
+  } catch (err: any) {
+    return { error: err.message }
+  }
+}
+
+export async function getAllUsersAdmin() {
+  // Fetch profiles
+  const { data: profiles } = await supabaseAdmin.from('profiles').select('*').order('created_at', { ascending: false })
+  // Fetch auth users to get email/username
+  const { data: authData } = await supabaseAdmin.auth.admin.listUsers()
+  
+  if (!profiles) return []
+
+  const authUsers = authData?.users || []
+  
+  return profiles.map(p => {
+    const authUser = authUsers.find(u => u.id === p.id)
+    // Buang @musholla.com untuk dapat username
+    const username = authUser?.email?.replace('@musholla.com', '') || 'unknown'
+    return { ...p, username }
+  })
 }

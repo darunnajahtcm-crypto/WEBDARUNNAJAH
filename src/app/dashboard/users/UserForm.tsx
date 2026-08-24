@@ -6,6 +6,7 @@ import { useState } from 'react'
 export default function UserForm() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -13,6 +14,10 @@ export default function UserForm() {
     setMessage('')
     
     const formData = new FormData(e.currentTarget)
+    
+    // Ubah username menjadi email agar diterima Supabase
+    const username = formData.get('username') as string
+    formData.set('email', `${username.replace(/\s+/g, '').toLowerCase()}@musholla.com`)
     
     try {
       const res = await createAdminOrPetugas(formData)
@@ -48,24 +53,34 @@ export default function UserForm() {
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Email (Untuk Login)</label>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Username (Untuk Login)</label>
         <input 
-          type="email" 
-          name="email" 
+          type="text" 
+          name="username" 
           required
+          placeholder="contoh: budi"
           className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary text-sm" 
         />
       </div>
 
       <div>
         <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
-        <input 
-          type="password" 
-          name="password" 
-          required
-          minLength={6}
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary text-sm" 
-        />
+        <div className="relative">
+          <input 
+            type={showPassword ? "text" : "password"}
+            name="password" 
+            required
+            minLength={6}
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary text-sm pr-10" 
+          />
+          <button 
+            type="button" 
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-2 top-2 text-xs text-gray-500 hover:text-primary font-bold"
+          >
+            {showPassword ? 'TUTUP' : 'LIHAT'}
+          </button>
+        </div>
       </div>
 
       <div>
