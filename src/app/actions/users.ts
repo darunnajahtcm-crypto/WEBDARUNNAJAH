@@ -1,10 +1,11 @@
 'use server'
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
+import { createClient } from '@/utils/supabase/server'
 
 // Gunakan Service Role Key untuk bypass RLS dan membuat user via Admin API
-const supabaseAdmin = createClient(
+const supabaseAdmin = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
   { auth: { autoRefreshToken: false, persistSession: false } }
@@ -100,7 +101,7 @@ export async function updateUserAction(formData: FormData) {
 }
 
 export async function getAllUsersAdmin() {
-  const supabase = await createClient() // Gunakan client biasa untuk cek sesi
+  const supabase = await createClient() // Sekarang memanggil server client
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) return []
