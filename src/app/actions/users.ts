@@ -31,21 +31,22 @@ export async function createAdminOrPetugas(formData: FormData) {
 
     if (authError) return { error: authError.message }
 
-    // 2. Insert ke tabel profiles
+    // 2. Update tabel profiles (karena trigger di Supabase mungkin sudah membuatkannya otomatis)
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .insert([
-        { 
-          id: authData.user.id, 
-          full_name, 
-          role 
-        }
-      ])
+      .update({ full_name, role })
+      .eq('id', authData.user.id)
 
+    // Jika update gagal (misal trigger belum dipasang), coba insert
     if (profileError) {
-      // Rollback jika gagal
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
-      return { error: profileError.message }
+      const { error: insertError } = await supabaseAdmin
+        .from('profiles')
+        .insert([{ id: authData.user.id, full_name, role }])
+        
+      if (insertError) {
+        await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+        return { error: insertError.message }
+      }
     }
 
     revalidatePath('/dashboard/users')
