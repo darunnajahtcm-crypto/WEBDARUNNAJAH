@@ -3,7 +3,7 @@
 import { createAdminOrPetugas } from '@/app/actions/users'
 import { useState } from 'react'
 
-export default function UserForm() {
+export default function UserForm({ myRole = 'PETUGAS' }: { myRole?: string }) {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -32,6 +32,11 @@ export default function UserForm() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Jika bukan MASTER atau ADMIN, tidak boleh akses form ini (seharusnya dicek di server juga)
+  if (myRole === 'PETUGAS') {
+    return <div className="text-sm text-gray-500">Anda tidak memiliki akses membuat akun.</div>
   }
 
   return (
@@ -90,7 +95,9 @@ export default function UserForm() {
           className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-primary focus:border-primary text-sm"
         >
           <option value="PETUGAS">PETUGAS (Input Data)</option>
-          <option value="ADMIN">ADMIN (Verifikasi & Edit)</option>
+          {myRole === 'MASTER_ADMIN' && (
+            <option value="ADMIN">ADMIN (Verifikasi & Edit)</option>
+          )}
         </select>
       </div>
 

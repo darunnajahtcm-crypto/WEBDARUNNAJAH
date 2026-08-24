@@ -100,19 +100,38 @@ export async function updateUserAction(formData: FormData) {
 }
 
 export async function getAllUsersAdmin() {
-  // Fetch profiles
-  const { data: profiles } = await supabaseAdmin.from('profiles').select('*').order('created_at', { ascending: false })
-  // Fetch auth users to get email/username
-  const { data: authData } = await supabaseAdmin.auth.admin.listUsers()
+  const supabase = await createClient() // Gunakan client biasa untuk cek sesi
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) return []
+
+  // Cek role diri sendiri
+  const { data: myProfile } = await supabaseAdmin
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const myRole = myProfile?.role
+
+  // Fetch semua profiles
+  let { data: profiles } = await supabaseAdmin.from('profiles').select('*').order('created_at', { ascending: false })
   
   if (!profiles) return []
 
+  // Jika bukan MASTER_ADMIN, sembunyikan MASTER_ADMIN dari daftar
+  if (myRole !== 'MASTER_ADMIN') {
+    profiles = profiles.filter(p => p.role !== 'MASTER_ADMIN')
+  }
+
+  // Fetch auth users to get email/username
+  const { data: authData } = await supabaseAdmin.auth.admin.listUsers()
   const authUsers = authData?.users || []
   
   return profiles.map(p => {
     const authUser = authUsers.find(u => u.id === p.id)
     // Buang @musholla.com untuk dapat username
     const username = authUser?.email?.replace('@musholla.com', '') || 'unknown'
-    return { ...p, username }
+    return { ...p, username, myRole } // Kirim myRole ke client untuk membatasi UI
   })
 }

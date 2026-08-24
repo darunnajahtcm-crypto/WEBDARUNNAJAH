@@ -4,6 +4,7 @@ import UserList from './UserList'
 
 export default async function UsersPage() {
   const users = await getAllUsersAdmin()
+  const myRole = users.length > 0 ? users[0].myRole : 'PETUGAS'
 
   return (
     <div className="space-y-6">
@@ -18,13 +19,13 @@ export default async function UsersPage() {
         <div className="xl:col-span-1">
           <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 sticky top-24">
             <h3 className="font-semibold text-gray-800 mb-4 border-b pb-2">Buat Akun Baru</h3>
-            <UserForm />
+            <UserForm myRole={myRole} />
           </div>
         </div>
 
         {/* Daftar Pengguna */}
         <div className="xl:col-span-2">
-          <UserList initialUsers={users} />
+          <UserList initialUsers={users} myRole={myRole} />
         </div>
 
       </div>

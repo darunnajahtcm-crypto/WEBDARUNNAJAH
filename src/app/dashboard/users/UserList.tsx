@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { deleteUserAction, updateUserAction } from '@/app/actions/users'
 
-export default function UserList({ initialUsers }: { initialUsers: any[] }) {
+export default function UserList({ initialUsers, myRole = 'PETUGAS' }: { initialUsers: any[], myRole?: string }) {
   const [users, setUsers] = useState(initialUsers)
   const [editingId, setEditingId] = useState<string | null>(null)
   
@@ -94,8 +94,8 @@ export default function UserList({ initialUsers }: { initialUsers: any[] }) {
                           <label className="block text-xs mb-1">Peran</label>
                           <select value={editRole} onChange={(e) => setEditRole(e.target.value)} className="w-full px-2 py-1 border rounded text-sm">
                             <option value="PETUGAS">PETUGAS</option>
-                            <option value="ADMIN">ADMIN</option>
-                            <option value="MASTER_ADMIN">MASTER ADMIN</option>
+                            {myRole === 'MASTER_ADMIN' && <option value="ADMIN">ADMIN</option>}
+                            {myRole === 'MASTER_ADMIN' && <option value="MASTER_ADMIN">MASTER ADMIN</option>}
                           </select>
                         </div>
                         <div className="flex gap-2 justify-end">
@@ -123,8 +123,18 @@ export default function UserList({ initialUsers }: { initialUsers: any[] }) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right space-x-2">
-                      <button onClick={() => startEdit(u)} className="text-blue-600 hover:text-blue-800 text-xs font-medium bg-blue-50 px-2 py-1 rounded">Edit</button>
-                      <button onClick={() => handleDelete(u.id, u.full_name)} disabled={u.role === 'MASTER_ADMIN' || loading} className="text-red-600 hover:text-red-800 text-xs font-medium bg-red-50 px-2 py-1 rounded disabled:opacity-30 disabled:cursor-not-allowed">Hapus</button>
+                      {/* Tampilkan aksi HANYA JIKA: 
+                          1. Saya MASTER_ADMIN
+                          2. ATAU (Saya ADMIN, dan user yg diedit adalah PETUGAS)
+                      */}
+                      {(myRole === 'MASTER_ADMIN' || (myRole === 'ADMIN' && u.role === 'PETUGAS')) ? (
+                        <>
+                          <button onClick={() => startEdit(u)} className="text-blue-600 hover:text-blue-800 text-xs font-medium bg-blue-50 px-2 py-1 rounded">Edit</button>
+                          <button onClick={() => handleDelete(u.id, u.full_name)} disabled={u.role === 'MASTER_ADMIN' || loading} className="text-red-600 hover:text-red-800 text-xs font-medium bg-red-50 px-2 py-1 rounded disabled:opacity-30 disabled:cursor-not-allowed">Hapus</button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">No access</span>
+                      )}
                     </td>
                   </tr>
                 )
